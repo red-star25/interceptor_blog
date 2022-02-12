@@ -30,10 +30,17 @@ class _RegisterPageState extends State<RegisterPage> {
     return Scaffold(
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state is Authenticated) {
+          if (state is RegisteredSuccessfully) {
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(
                 builder: (context) => const LogInPage(),
+              ),
+            );
+          }
+          if (state is RegisteredFailed) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.error),
               ),
             );
           }
@@ -46,7 +53,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 child: CircularProgressIndicator(),
               );
             }
-            if (state is UnAuthenticated) {
+            if (state is NotRegistered) {
               // Showing the sign in form if the user is not authenticated
               return Center(
                 child: Padding(
@@ -164,6 +171,9 @@ class _RegisterPageState extends State<RegisterPage> {
                                 ),
                               ),
                               onPressed: () {
+                                context.read<AuthBloc>().add(
+                                      LogInEvent(),
+                                    );
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
                                     builder: (context) => const LogInPage(),
@@ -198,7 +208,7 @@ class _RegisterPageState extends State<RegisterPage> {
   void _createAccountWithEmailAndPassword(BuildContext context) {
     if (_formKey.currentState!.validate()) {
       BlocProvider.of<AuthBloc>(context).add(
-        SignUpRequested(
+        ResigterRequested(
           _emailController.text,
           _passwordController.text,
           _usernameController.text,

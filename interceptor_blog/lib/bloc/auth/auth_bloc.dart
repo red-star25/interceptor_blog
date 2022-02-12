@@ -12,16 +12,17 @@ part 'auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final locator = getIt.get<SharedPreferenceHelper>();
-  AuthBloc({required this.authRepository}) : super(UnAuthenticated()) {
-    // When User Presses the SignIn Button, we will send the SignInRequested Event to the AuthBloc to handle it and emit the Authenticated State if the user is authenticated
-    on<SignInRequested>(_signInUser);
-    // When User Presses the SignUp Button, we will send the SignUpRequest Event to the AuthBloc to handle it and emit the Authenticated State if the user is authenticated
-    on<SignUpRequested>(_signUpUser);
+  AuthBloc({required this.authRepository}) : super(NotLoggedIn()) {
+    on<LogInRequested>(_logInUser);
+    on<ResigterRequested>(_registerUser);
+    on<RegisterEvent>((event, emit) => emit(NotRegistered()));
+    on<LogInEvent>((event, emit) => emit(NotLoggedIn()));
+    on<LogOutRequested>(_logOutUser);
   }
   final AuthRepository authRepository;
 
-  FutureOr<void> _signInUser(
-    SignInRequested event,
+  FutureOr<void> _logInUser(
+    LogInRequested event,
     Emitter<AuthState> emit,
   ) async {
     emit(Loading());
@@ -30,30 +31,48 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         email: event.email,
         password: event.password,
       );
-      await locator.setUserToken(userToken: res["token"]).then((value) {
-        emit(Authenticated());
-      });
+
+      if (res['success'] == true) {
+        await locator.setUserToken(userToken: res["token"]).then((value) {
+          emit(LoggedInSuccessfully());
+        });
+      } else {
+        emit(LoggedInFailed(res['msg']));
+        emit(NotLoggedIn());
+      }
     } catch (e) {
-      emit(AuthError(e.toString()));
-      emit(UnAuthenticated());
+      emit(LoggedInFailed(e.toString()));
+      emit(NotLoggedIn());
     }
   }
 
-  FutureOr<void> _signUpUser(
-    SignUpRequested event,
+  FutureOr<void> _registerUser(
+    ResigterRequested event,
     Emitter<AuthState> emit,
   ) async {
     emit(Loading());
     try {
-      await authRepository.register(
+      final res = await authRepository.register(
         email: event.email,
         password: event.password,
         userName: event.userName,
       );
-      emit(Authenticated());
+      if (res['success'] == true) {
+        emit(RegisteredSuccessfully());
+        emit(NotLoggedIn());
+      } else {
+        emit(RegisteredFailed(res['msg']));
+        emit(NotRegistered());
+      }
     } catch (e) {
-      emit(AuthError(e.toString()));
-      emit(UnAuthenticated());
+      emit(RegisteredFailed(e.toString()));
+      emit(NotRegistered());
     }
+  }
+
+  FutureOr<void> _logOutUser(
+      LogOutRequested event, Emitter<AuthState> emit) async {
+    await locator.prefs.clear();
+    emit(NotLoggedIn());
   }
 }

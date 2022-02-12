@@ -10,13 +10,14 @@ class HomeRepository {
   final sharedPrefLocator = getIt.get<SharedPreferenceHelper>();
 
   Future<List<User>> getAllUsers() async {
-    final response = await netWorkLocator.dio
-        .get('${EndPoints.baseUrl}${EndPoints.allUsers}',
-            options: Options(
-              headers: {
-                'Authorization': '${sharedPrefLocator.getUserToken()}',
-              },
-            ));
+    final response = await netWorkLocator.dio.get(
+      '${EndPoints.baseUrl}${EndPoints.allUsers}',
+      options: Options(
+        headers: {
+          'Authorization': '${sharedPrefLocator.getUserToken()}',
+        },
+      ),
+    );
     final data = (response.data as List).map((e) => User.fromJson(e)).toList();
     return data;
   }

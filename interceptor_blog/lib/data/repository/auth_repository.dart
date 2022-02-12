@@ -48,6 +48,7 @@ class AuthRepository {
       if (response.statusCode != 200) {
         throw Exception('Failed to sign in');
       }
+
       completer.complete(response.data);
     } catch (e) {
       print(e);

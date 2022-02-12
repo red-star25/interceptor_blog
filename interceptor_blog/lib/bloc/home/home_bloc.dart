@@ -15,7 +15,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final sharedPrefLocator = getIt.get<SharedPreferenceHelper>();
   HomeBloc({required this.homeRepository}) : super(HomeInitial()) {
     on<LoadUserEvent>(_loadUser);
-    on<LogOutEvent>(_logOutUser);
   }
 
   FutureOr<void> _loadUser(LoadUserEvent event, Emitter<HomeState> emit) async {
@@ -26,11 +25,5 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     } catch (e) {
       emit(HomeError(message: e.toString()));
     }
-  }
-
-  FutureOr<void> _logOutUser(LogOutEvent event, Emitter<HomeState> emit) {
-    emit(HomeLoading());
-    sharedPrefLocator.prefs.clear();
-    emit(HomeLoggedOut());
   }
 }

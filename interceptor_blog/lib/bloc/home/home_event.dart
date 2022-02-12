@@ -8,5 +8,3 @@ abstract class HomeEvent extends Equatable {
 }
 
 class LoadUserEvent extends HomeEvent {}
-
-class LogOutEvent extends HomeEvent {}

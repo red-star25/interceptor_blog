@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:interceptor_blog/bloc/auth/auth_bloc.dart';
 import 'package:interceptor_blog/bloc/email/email_bloc.dart';
 import 'package:interceptor_blog/bloc/home/home_bloc.dart';
 import 'package:interceptor_blog/bloc/profile/profile_bloc.dart';
@@ -26,13 +27,17 @@ class HomePage extends StatelessWidget {
         child: const Icon(Icons.person),
       ),
       appBar: AppBar(
+        leading: const SizedBox(),
         title: const Text("Users"),
         actions: [
           IconButton(
             tooltip: "Log Out",
             icon: const Icon(Icons.exit_to_app),
             onPressed: () {
-              BlocProvider.of<HomeBloc>(context).add(LogOutEvent());
+              context.read<AuthBloc>().add(LogOutRequested());
+              Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const LogInPage()),
+                  (route) => false);
             },
           ),
         ],

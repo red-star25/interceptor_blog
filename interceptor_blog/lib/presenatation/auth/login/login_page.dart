@@ -2,6 +2,7 @@ import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:interceptor_blog/bloc/auth/auth_bloc.dart';
+import 'package:interceptor_blog/bloc/home/home_bloc.dart';
 import 'package:interceptor_blog/presenatation/auth/register/register_page.dart';
 import 'package:interceptor_blog/presenatation/home/home_page.dart';
 
@@ -29,10 +30,19 @@ class _LogInPageState extends State<LogInPage> {
     return Scaffold(
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state is Authenticated) {
+          if (state is LoggedInSuccessfully) {
+            context.read<HomeBloc>().add(LoadUserEvent());
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(
                 builder: (context) => const HomePage(),
+              ),
+            );
+          }
+          if (state is LoggedInFailed) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.error),
+                backgroundColor: Colors.red,
               ),
             );
           }
@@ -45,7 +55,7 @@ class _LogInPageState extends State<LogInPage> {
                 child: CircularProgressIndicator(),
               );
             }
-            if (state is UnAuthenticated) {
+            if (state is NotLoggedIn) {
               // Showing the sign in form if the user is not authenticated
               return Center(
                 child: Padding(
@@ -146,6 +156,9 @@ class _LogInPageState extends State<LogInPage> {
                                 ),
                               ),
                               onPressed: () {
+                                context.read<AuthBloc>().add(
+                                      RegisterEvent(),
+                                    );
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
                                     builder: (context) => const RegisterPage(),
@@ -180,7 +193,7 @@ class _LogInPageState extends State<LogInPage> {
   void _authenticateWithEmailAndPassword(BuildContext context) {
     if (_formKey.currentState!.validate()) {
       BlocProvider.of<AuthBloc>(context).add(
-        SignInRequested(_emailController.text, _passwordController.text),
+        LogInRequested(_emailController.text, _passwordController.text),
       );
     }
   }
